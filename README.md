@@ -1,6 +1,9 @@
 # Some of my codewars solutions
 The filenames should roughly match the kata names.
 
+My goal is to solve these challanges as fast as possible,
+not to create the most idiomatic/clean/fast solution.
+
 # Contributing
 This is purely an archive of my code. There's nothing to contribute.
 I will not be answering questions/providing explainations of any code.
