@@ -1,6 +1,8 @@
 # Some of my solutions to various programming challanges
 The filenames should roughly match the challange names.
 
+Most of the code is not elegant, but always meets the required space and time
+complexity.
 
 # Contributing
 This is purely an archive of my code. There's nothing to contribute.
