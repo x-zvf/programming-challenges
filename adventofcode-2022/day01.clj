@@ -1,4 +1,5 @@
 (ns day01)
+(require 'clojure.string)
 
 (def test-input "1000
 2000
@@ -17,26 +18,30 @@
 
 (def real-input (slurp "./inputs/day01.txt"))
 
-(defn part1 [input]
-  (->> (clojure.string/split input #"\n\n")
-       (parse-elve)
-       (apply max)))
-
-(defn parse-elve [elve]
+(defn sum-elve [elve]
   (map (fn [x]
          (->> (clojure.string/split x #"\n")
               (map #(Integer/parseInt %))
               (reduce +))) elve))
 
-(part1 test-input)
-(part1 real-input); => 69289
+(defn parse-input [input]
+  (sum-elve (clojure.string/split input #"\n\n")))
+
+(defn part1 [input]
+  (->> input
+       parse-input
+       (apply max)))
 
 (defn part2 [input]
-  (->> (clojure.string/split input #"\n\n")
-       (parse-elve)
-       (sort)
-       (take-last 3)
+  (->> input
+       parse-input
+       sort
+       reverse
+       (take 3)
        (reduce +)))
 
-(part2 test-input); => 45000
-(part2 real-input); => 205615
+(part1 test-input);; => 24000
+(part1 real-input);; => 69289
+
+(part2 test-input);; => 45000
+(part2 real-input);; => 205615
