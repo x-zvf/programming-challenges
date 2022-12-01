@@ -1,1 +1,2 @@
-{:path ["./"]}
+{:path ["./"]
+ :deps {org.clojure/data.priority-map {:mvn/version "1.1.0"}}}

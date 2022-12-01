@@ -1,0 +1,41 @@
+<div id="c">
+</div>
+<div id="d">
+  <div id="b"> </div>
+  <div id="a"> </div>
+</div>
+<style>
+  div {
+    position: absolute;
+    top:50%;
+    left:50%;
+  }
+  #c {
+    transform: translate(-50%, -50%);
+    border-radius: 100%;
+    width: 80px;
+    height: 80px;
+    background: #AA445F;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 30px #F7EC7D,
+      0 0 0 60px #AA445F;
+  }
+  #b,#a {
+    width: 100px;
+    height: 100px;
+    background: #AA445F;
+  }
+  #a {
+    transform: translate(-100%, -100%);
+  }
+  #d {
+    width: 200px;
+    height: 200px;
+    transform: translate(-50%, -50%);
+    border-radius: 100%;
+    background: transparent;
+    border: 500px solid #E38F66;
+    overflow: hidden;
+  }
+</style>
