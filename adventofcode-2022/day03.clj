@@ -2,7 +2,6 @@
 (require 'clojure.string)
 (require 'clojure.set)
 
-
 (def test-input "vJrwpWtwJgWrhcsFMMfFFhFp
 jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
 PmmdzqPrVvPwwTWBwg
@@ -22,7 +21,9 @@ CrZsJsPPZsGzwwsLwLmpwMDw
        (take-last sidelen s)]))
 
 (defn priority [x]
-  (let [a (int \a) A (int \A) v (int x) d (- v a) D (- v A)]
+  (let [a (int \a) A (int \A) 
+        v (int x) 
+        d (- v a) D (- v A)]
     (if (>= d 0) (+ 1 d)
         (+ 27 D))))
 

@@ -1,6 +1,7 @@
 (ns day15
-  (:require [com.rpl.specter :as S]
-            [clojure.data.priority-map :as data]))
+  (:require
+            [clojure.data.priority-map :as data]
+            [clojure.string]))
 
 (def test-input "1163751742
 1381373672
@@ -13,10 +14,12 @@
 1293138521
 2311944581")
 
-(defn find-path [start-coord neighbours]
-  (loop [m {} Q (data/priority-map start-coord 0)]
-    (if-let [[coord dist] (peek Q)]
-      (let [dists (->> (neighbours coord)
-                       )])
-      m)
-    ))
+
+(defn parse-input [input]
+  (as-> input x
+    (clojure.string/split x #"\n")
+    (map seq x)
+    (map (fn [line] (map #(read-string (str %)) line)) x)))
+
+(parse-input test-input)
+
