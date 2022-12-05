@@ -44,51 +44,36 @@ move 1 from 1 to 2")
     ((fn [[stack, moves]] (list (parse-stack stack) (parse-moves moves))) x)
     ))
 
-(defn step [[istack imoves]]
-  (loop [stack istack moves imoves]
-  (if (empty? moves) [stack, nil]
-      (let [[n f t] (first moves) othermoves (drop 1 moves)
-            val-to-move (last (get stack f))]
-        (if (= n 0) (recur stack othermoves)
-            (recur
-              (-> stack
-                  (assoc f (vec (drop-last 1 (get stack f))))
-                  (assoc t (conj (get stack t) val-to-move))
-                  )
-              (conj othermoves (list (- n 1) f t))))))))
-
-(defn step2 [[istack imoves]]
+(defn step [at-a-time-fn [istack imoves]]
   (loop [stack istack moves imoves]
     (if (empty? moves) [stack, nil]
-        (let [[n f t] (first moves) othermoves (drop 1 moves)
-              val-to-move (take-last n (get stack f))]
+        (let [[n f t] (first moves)
+              m (at-a-time-fn n)
+              othermoves (drop 1 moves)
+              val-to-move (take-last m (get stack f))]
+          (if (= n 0) (recur stack othermoves)
               (recur
                (-> stack
-                   (assoc f (vec (drop-last n (get stack f))))
+                   (assoc f (vec (drop-last m (get stack f))))
                    (assoc t (apply conj (get stack t) val-to-move)))
-               othermoves)))))
+               (conj othermoves (list (- n m) f t))))))))
 
+(defn solve [stepfn input]
+  (->> input
+       parse-input
+       (step stepfn)
+       first
+       (map last)
+       (apply str)))
 
 (defn part1 [input]
-  (->> input
-       parse-input
-       step
-       first
-       (map last)
-       (apply str)))
+  (solve (fn [_] 1) input))
 
 (defn part2 [input]
-  (->> input
-       parse-input
-       step2
-       first
-       (map last)
-       (apply str)))
+  (solve identity input))
 
 
 (part1 test-input)
 (part1 real-input)
-;; => "VCTFTJQCG"
-
 (part2 test-input)
 (part2 real-input)
