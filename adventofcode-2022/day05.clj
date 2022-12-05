@@ -17,51 +17,47 @@ move 1 from 1 to 2")
   (apply map list xs))
 
 (defn parse-stack [input]
-  (as-> input x
-    (clojure.string/split x #"\n")
-    (map #(str % " ") x)
-    (map #(partition 4 %) x)
-    (map #(map (fn [l] (first (filter (fn [c] (Character/isLetter c)) l))) %) x)
-    (drop-last x)
-    (apply transpose x)
-    (map reverse x)
-    (map #(filter (fn [c](not (nil? c))) %) x)
-    (map vec x)
-    (vec x)
-  ))
+  (->> (clojure.string/split input #"\n")
+    (map #(str % " ")) ; add another space at the end of the line, so we can partition
+    (map #(partition 4 %))
+    (map #(map (fn [l] (first (filter (fn [c] (Character/isLetter c)) l))) %))
+    (drop-last) ; remove the line that contains the indices
+    (apply transpose)
+    (map reverse)
+    (map #(filter (fn [c] (not (nil? c))) %))
+    (map vec)
+    vec))
 
 (defn parse-moves [input]
-  (as-> input x
-    (clojure.string/split x #"\n")
-    (map #(re-matches #"move (\d+) from (\d+) to (\d+)" %) x)
-    (map (fn [[_ n f t]] [(read-string n)
-                               (- (read-string f) 1)
-                               (- (read-string t) 1)]) x)))
+  (->> (clojure.string/split input #"\n")
+       (map #(re-matches #"move (\d+) from (\d+) to (\d+)" %))
+       (map (fn [[_ n f t]] [(read-string n)
+                             (- (read-string f) 1) ; Use zero-based indexing
+                             (- (read-string t) 1)]))))
 
 (defn parse-input [input]
-  (as-> input x
-    (clojure.string/split x #"\n\n")
-    ((fn [[stack, moves]] (list (parse-stack stack) (parse-moves moves))) x)
-    ))
+  (-> input
+      (clojure.string/split #"\n\n")
+      ((fn [[stack, moves]] (list (parse-stack stack) (parse-moves moves))))))
 
-(defn step [at-a-time-fn [istack imoves]]
-  (loop [stack istack moves imoves]
+(defn step [at-a-time-fn [stack moves]]
+  (loop [stack stack moves moves]
     (if (empty? moves) [stack, nil]
-        (let [[n f t] (first moves)
+        (let [[n from to] (first moves)
               m (at-a-time-fn n)
               othermoves (drop 1 moves)
-              val-to-move (take-last m (get stack f))]
+              val-to-move (take-last m (get stack from))]
           (if (= n 0) (recur stack othermoves)
               (recur
                (-> stack
-                   (assoc f (vec (drop-last m (get stack f))))
-                   (assoc t (apply conj (get stack t) val-to-move)))
-               (conj othermoves (list (- n m) f t))))))))
+                   (assoc from (vec (drop-last m (get stack from))))
+                   (assoc to (apply conj (get stack to) val-to-move)))
+               (conj othermoves (list (- n m) from to))))))))
 
-(defn solve [stepfn input]
+(defn solve [at-a-time-fn input]
   (->> input
        parse-input
-       (step stepfn)
+       (step at-a-time-fn)
        first
        (map last)
        (apply str)))
@@ -72,8 +68,8 @@ move 1 from 1 to 2")
 (defn part2 [input]
   (solve identity input))
 
+(part1 test-input);; => "CMZ"
+(part1 real-input);; => "VCTFTJQCG"
+(part2 test-input);; => "MCD"
+(part2 real-input);; => "GCFGLDNJZ"
 
-(part1 test-input)
-(part1 real-input)
-(part2 test-input)
-(part2 real-input)
