@@ -1,4 +1,6 @@
 use std::fs::read_to_string;
+use std::cmp::min;
+use std::cmp::max;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Mapping {
@@ -11,6 +13,7 @@ impl Mapping{
         self.from <= x && x < self.from + self.len
     }
     fn apply(&self, x: u64) -> u64 {
+//        println!("apply {:?} to {}", self, x);
         assert!(self.contains(x));
         let delta: i64 = x as i64 - self.from as i64;
         (self.to as i64 + delta) as u64
@@ -36,6 +39,36 @@ impl Table {
             }
         }
         x
+    }
+
+    fn translate_ranges(&self, mut inp: Vec<(u64, u64)>) -> Vec<(u64, u64)> {
+        let mut result = vec![];
+        for mapping in &self.mappings {
+            let map_end = mapping.from + mapping.len;
+
+            let mut new_r: Vec<(u64,u64)> = Vec::new();
+            while !inp.is_empty() {
+                let (start,end) = inp.pop().unwrap();
+
+                let pre = (start,min(end, mapping.from));
+                let intersect = (max(start, mapping.from), min(end, map_end));
+                let post = (max(start, map_end), end);
+
+                if pre.0 < pre.1 {
+                    new_r.push(pre);
+                }
+                if intersect.0 < intersect.1 {
+                    result.push((intersect.0 - mapping.from + mapping.to, intersect.1 - mapping.from + mapping.to));
+                }
+                if post.0 < post.1 {
+                    new_r.push(post);
+                }
+            }
+            inp = new_r;
+
+        }
+        result.extend(inp);
+        result
     }
 }
 
@@ -71,98 +104,33 @@ fn parse_input(input: &str) -> (Vec<u64>, Vec<Table>) {
         .collect::<Vec<Table>>();
     (seeds, tables)
 }
-
-fn combine_tables(tables: &Vec<Table>) -> Table {
-    //let mut combined_mappings: Vec<Mapping> = Vec::new();
-
-    let mut descision_points: Vec<u64> = tables.iter().flat_map(|table| {
-        table.mappings.iter()
-            .map(|m| vec![m.from, m.from + m.len])
-            .flatten()
-            .collect::<Vec<_>>()
-    }).collect();
-
-    /*
-    let mut descision_points: Vec<u64> = first.mappings.iter()
-        .map(|m| vec![m.from, m.from + m.len])
-        .flatten()
-        .chain(second.mappings.iter()
-            .map(|m| vec![m.from, m.from + m.len])
-            .flatten()
-        )
-        .collect(); */
-    descision_points.sort();
-    descision_points.dedup();
-    //println!("Descision points: {:?}", descision_points);
-
-    let new_map = descision_points.windows(2)
-        .flat_map(|w| {
-             let (a,b) = (w[0], w[1]);
-             let r = tables.iter().fold(a, |x, table| table.translate(x));
-
-             if a == r {
-                 vec![]
-             } else {
-                 vec![Mapping {
-                     to: r,
-                     from: a,
-                     len: b-a,
-                 }]
-             }
-        }).collect::<Vec<_>>();
-    Table::new(new_map)
-}
-
 fn part1(input: &str) -> u64 {
     let (seeds,tables) = parse_input(input);
-    let combined_table = combine_tables(&tables);
     seeds.iter()
-        .map(|seed| combined_table.translate(*seed))
+        .map(|seed|
+             tables.iter()
+                .fold(*seed, |x, table| table.translate(x)))
         .min().unwrap()
 }
 
 fn part2(input: &str) -> u64 {
     let (seeds,tables) = parse_input(input);
-    let combined_table = combine_tables(&tables);
-    println!("Seeds: {:?}", seeds);
-    println!("Combined table: {:?}", combined_table);
 
+    let seed_ranges = seeds.chunks(2).map(|w| (w[0], w[1])).collect::<Vec<(u64,u64)>>();
+    //println!("seed_ranges: {:?}", seed_ranges);
 
-    println!(" 82 -> {}", combined_table.translate(82));
-    let mut possible_points = seeds.windows(2).flat_map(|w| {
-        let (start,len) = (w[0], w[1]);
-        let mut points = Vec::new();
-        for mapp in combined_table.mappings.iter() {
-            // if seed and mapping overlap
-            if start + len >= mapp.from && start < mapp.from + mapp.len {
-                // before
-                if start < mapp.from {
-                    points.push(mapp.from);
-                } else {
-                    points.push(start);
-                }
-            } 
+    let mut mins = vec![];
+    for (start,len) in seed_ranges {
+        let mut rs = vec![(start, start+len)];
+        for table in &tables {
+            //println!("table: {:?}: rs: {:?}", table, rs);
+            rs = table.translate_ranges(rs);
         }
-        points
-    }).collect::<Vec<_>>();
-    
-    println!("Possible points: {:?}", possible_points);
-
-    0
+        mins.push(rs.iter().map(|(s,_)| s).min().unwrap().clone());
+    }
+   mins.iter().min().unwrap().clone()
 }
 
-fn test_tables(tables: Vec<Table>) {
-    let combined_table = combine_tables(&tables);
-    for i in 0..100 {
-        let r = tables.iter().fold(i, |x, table| table.translate(x));
-        print!("{}, ", r);
-    }
-    println!("");
-    for i in 0..100 {
-        print!("{}, ", combined_table.translate(i));
-    }
-    println!("");
-}
 
 fn main() {
     let test_input = read_to_string("inputs/day05-test.txt").unwrap();
@@ -170,6 +138,6 @@ fn main() {
 
     println!("Part 1 test: {}", part1(&test_input));
     println!("Part 1: {}", part1(&real_input));
-    println!("Part 2 test: {}", part2_brute_force(&test_input));
-    println!("Part 2: {}", part2_brute_force(&real_input));
+    println!("Part 2 test: {}", part2(&test_input));
+    println!("Part 2: {}", part2(&real_input));
 }
