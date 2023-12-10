@@ -81,7 +81,6 @@ fn print_points(width: usize, height: usize, points: &Vec<(usize, usize, Colored
         println!("{}", "|".on_white());
 
     }
-
     println!("{}","-".repeat(width+2).on_white());
 }
 
@@ -114,7 +113,7 @@ fn part1(input: &str) -> i64 {
 fn part2(input: &str) -> i64 {
     let (grid, starting_point) = parse(input);
     let path = get_loop(&grid, starting_point);
-    print_path(grid[0].len(), grid.len(), &path);
+    //print_path(grid[0].len(), grid.len(), &path);
 
     let mut left_of_path: Vec<(isize, isize)> = vec![];
     let mut right_of_path = vec![];
@@ -124,7 +123,6 @@ fn part2(input: &str) -> i64 {
 
     for (nx, ny) in path.iter().skip(1) {
         let c = grid[current.1][current.0];
-        //println!("Current: {:?} Next: {:?} Char: {}", current, (nx, ny), c);
         let (cxi, cyi) = (current.0 as isize, current.1 as isize);
         match c {
 
@@ -234,11 +232,8 @@ fn part2(input: &str) -> i64 {
 
     left_of_path = filter_points(&left_of_path);
     right_of_path = filter_points(&right_of_path);
-    //print_points(grid[0].len(), grid.len(), &left_of_path.iter().map(|(x, y)| (*x as usize, *y as usize, "L".green())).collect::<Vec<_>>());
-    //print_points(grid[0].len(), grid.len(), &right_of_path.iter().map(|(x, y)| (*x as usize, *y as usize, "R".red())).collect::<Vec<_>>());
 
     let flood_fill_from_point = |(x, y): (isize, isize)| {
-//        println!("Flood fill from ({}, {})", x, y);
         let mut visited = vec![vec![false; grid[0].len()]; grid.len()];
         visited[y as usize][x as usize] = true;
         let mut queue = vec![(x, y)];
@@ -246,18 +241,12 @@ fn part2(input: &str) -> i64 {
             if x == 0 || y == 0 || x == (grid[0].len() as isize - 1) || y == (grid.len() as isize - 1) {
                 return HashSet::new(); // reached outside
             }
-            //print!("@ ({}, {}) visiting neighbours =>", x, y);
             let neighbours = vec![(x, y-1), (x, y+1), (x-1, y), (x+1, y)].into_iter()
-                .map(|(x, y)| {
-                    //print!(" ({}, {}): visited={},grid={} |", x, y, visited[y as usize][x as usize], grid[y as usize][x as usize]);
-                    (x, y)})
                 .filter(|(x, y)|
                         (!visited[*y as usize][*x as usize])
                         && !path.contains(&(*x as usize, *y as usize)))
                 .collect::<Vec<_>>();
-            //println!();
             for (nx, ny) in neighbours {
-                //println!("@ ({}, {}) visiting ({}, {})", x, y, nx, ny);
                 visited[ny as usize][nx as usize] = true;
                 queue.push((nx, ny));
             }
@@ -276,7 +265,6 @@ fn part2(input: &str) -> i64 {
         let mut filled_points = HashSet::new();
         for (x, y) in points {
             let new = flood_fill_from_point((*x, *y));
-            //println!("=====> Filled point {:?}: {:?}", (x, y), new);
             if new.is_empty() {
                 return HashSet::new();
             }
@@ -284,10 +272,7 @@ fn part2(input: &str) -> i64 {
         }
         filled_points
     };
-    //println!("Left: {:?}", left_of_path);
-    //println!("Right: {:?}", right_of_path);
     let left_filled = flood_all(&left_of_path);
-    //println!("=============== RIGHT ===============");
     let right_filled = flood_all(&right_of_path);
 
     //print_points(grid[0].len(), grid.len(), &left_filled.iter().map(|(x, y)| (*x as usize, *y as usize, "F".yellow())).collect::<Vec<_>>());
@@ -301,7 +286,7 @@ fn part2(input: &str) -> i64 {
     } else {
         left_filled
     };
-    print_points(grid[0].len(), grid.len(), &inner.iter().map(|(x, y)| (*x as usize, *y as usize, "F".yellow())).collect::<Vec<_>>());
+    //print_points(grid[0].len(), grid.len(), &inner.iter().map(|(x, y)| (*x as usize, *y as usize, "F".yellow())).collect::<Vec<_>>());
 
     inner.len() as i64
 }
