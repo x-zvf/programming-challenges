@@ -1,5 +1,6 @@
 use std::fs::read_to_string;
 use itertools::Itertools;
+use std::collections::HashSet;
 
 fn parse_input(input: &str) -> Vec<(isize, isize)> {
     let grid = input.lines().map(|l| l.chars().collect::<Vec<_>>()).collect::<Vec<_>>(); 
@@ -16,8 +17,8 @@ fn parse_input(input: &str) -> Vec<(isize, isize)> {
 
 fn expanded(positions: &Vec<(isize, isize)>, n: isize) -> Vec<(isize, isize)> {
     let n = n - 1;
-    let occupied_rows = positions.iter().map(|(_, y)| *y).unique().collect::<Vec<_>>();
-    let occupied_cols = positions.iter().map(|(x, _)| *x).unique().collect::<Vec<_>>();
+    let occupied_rows = positions.iter().map(|(_, y)| *y).unique().collect::<HashSet<_>>();
+    let occupied_cols = positions.iter().map(|(x, _)| *x).unique().collect::<HashSet<_>>();
     positions
         .iter()
         .map(|(x, y)| {
