@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 regex = "1.10"
+itertools = "0.12"
 num = "0.4"
 colored = "2.1"
