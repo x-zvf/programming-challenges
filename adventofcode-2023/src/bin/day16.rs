@@ -15,21 +15,18 @@ fn parse(input: &str) -> Grid {
 }
 
 fn energize(grid: &Grid, initial: (isize, isize, Direction)) -> usize {
-    let mut beams_queue: Vec<(isize, isize, Direction)> = Vec::new();
-    beams_queue.push(initial);
-
+    let mut beams_queue = vec![initial];
     let mut visited: Vec<Vec<Vec<Direction>>> = vec![vec![vec![]; grid[0].len()]; grid.len()];
 
     while !beams_queue.is_empty() {
         let (x, y, dir) = beams_queue.pop().unwrap();
-        //println!("{} {} {:?} \t\t {:?}", x, y, dir, beams_queue);
         if x < 0 || y < 0 || y >= grid.len() as isize || x >= grid[y as usize].len() as isize {
             continue;
         }
-        let c = grid[y as usize][x as usize];
         if visited[y as usize][x as usize].contains(&dir) {
             continue;
         }
+        let c = grid[y as usize][x as usize];
         visited[y as usize][x as usize].push(dir);
 
         match c {
@@ -39,17 +36,17 @@ fn energize(grid: &Grid, initial: (isize, isize, Direction)) -> usize {
                 Direction::Left  => (x - 1, y, Direction::Left),
                 Direction::Right => (x + 1, y, Direction::Right),
             }),
-            '\\' => beams_queue.push(match dir {
-                Direction::Up    => (x - 1, y, Direction::Left),
-                Direction::Down  => (x + 1, y, Direction::Right),
-                Direction::Left  => (x, y - 1, Direction::Up),
-                Direction::Right => (x, y + 1, Direction::Down),
-            }),
             '/' => beams_queue.push(match dir {
                 Direction::Up    => (x + 1, y, Direction::Right),
                 Direction::Down  => (x - 1, y, Direction::Left),
                 Direction::Left  => (x, y + 1, Direction::Down),
                 Direction::Right => (x, y - 1, Direction::Up),
+            }),
+            '\\' => beams_queue.push(match dir {
+                Direction::Up    => (x - 1, y, Direction::Left),
+                Direction::Down  => (x + 1, y, Direction::Right),
+                Direction::Left  => (x, y - 1, Direction::Up),
+                Direction::Right => (x, y + 1, Direction::Down),
             }),
             '-' => {
                 match dir {
