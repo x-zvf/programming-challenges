@@ -107,10 +107,8 @@ fn part2(input: &str) -> usize {
     assert_eq!(s.module_inputs.get("rx").unwrap().len(), 1);
     let rx_input = s.module_inputs.get("rx").unwrap().iter().next().unwrap().0;
     let rx_depends = s.module_inputs.get(rx_input).unwrap().iter()
-        .map(|(k, _)| k.clone()).collect::<Vec<_>>();
+        .map(|(k, _)| *k).collect::<Vec<_>>();
 
-    let rx_input = rx_input.clone();
-    let rx_depends = rx_depends.clone();
     let mut rx_depends_cycle_len = HashMap::new();
     let mut i = 0;
     loop {
