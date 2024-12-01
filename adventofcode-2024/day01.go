@@ -47,14 +47,36 @@ func main() {
 	}
 	fmt.Println("part1: ", sum)
 
-	freq := make(map[int]int)
+	similarity := 0
+	/* freq := make(map[int]int)
 	for _, v := range right {
 		freq[v] += 1
 	}
-
-	similarity := 0
 	for _, v := range left {
 		similarity += v * freq[v]
+	} */
+
+	ln := left[0]
+	lc := 0
+	ri := 0
+	for _, lv := range left {
+		if lv == ln {
+			lc += 1
+		} else {
+			for right[ri] < ln {
+				ri += 1
+			}
+			rc := 0
+			for right[ri] == ln {
+				rc += 1
+				ri += 1
+			}
+			similarity += ln * lc * rc
+
+			ln = lv
+			lc = 1
+		}
+
 	}
 	fmt.Println("part2: ", similarity)
 }
