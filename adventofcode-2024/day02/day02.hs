@@ -11,14 +11,12 @@ safe ls = mon && delta
     mon = allw (uncurry (-)) (<0) || allw (uncurry (-)) (>0)
     delta = allw (\(a,b) -> abs (a-b)) (<=3) 
 
-
 dropping ls =
   map (\i -> let (l,r) = splitAt i ls in (inits l) ++ r) idxs
   where
     idxs = [0..(length ls)]
     inits [] = []
     inits xs = init xs
-
 
 part1 = length . filter safe
 part2 = length . filter (\l -> any safe $ dropping l) 
