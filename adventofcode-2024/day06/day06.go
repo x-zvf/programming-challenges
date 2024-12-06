@@ -8,20 +8,20 @@ import (
 )
 
 var R2ID = map[rune]int{
-	// dy dx
 	'^': 0,
 	'>': 1,
 	'v': 2,
 	'<': 3,
 }
 var DELTA = [][]int{
+	// dy dx
 	{-1, 0},
 	{0, 1},
 	{1, 0},
 	{0, -1},
 }
 
-func eval(grid [][]rune, sy, sx, did int) (int, map[int]int) {
+func eval(grid [][]rune, sy, sx, did, ey, ex int) (int, map[int]int) {
 	w := len(grid[0])
 	h := len(grid)
 	ingrid := func(y, x int) bool {
@@ -37,7 +37,7 @@ func eval(grid [][]rune, sy, sx, did int) (int, map[int]int) {
 	for {
 		ny := sy + DELTA[did][0]
 		nx := sx + DELTA[did][1]
-		for ingrid(ny, nx) && grid[ny][nx] == '#' {
+		for ingrid(ny, nx) && ((ny == ey && nx == ex) || grid[ny][nx] == '#') {
 			did = (did + 1) % len(DELTA)
 			ny = sy + DELTA[did][0]
 			nx = sx + DELTA[did][1]
@@ -53,17 +53,10 @@ func eval(grid [][]rune, sy, sx, did int) (int, map[int]int) {
 		} else {
 			visited_c += 1
 			visited[encode(ny, nx)] = did
-			//grid[ny][nx] = 'X'
 		}
 		sy = ny
 		sx = nx
 	}
-	/* for _, line := range grid {
-		for _, c := range line {
-			fmt.Print("", string(c))
-		}
-		fmt.Println()
-	} */
 	return visited_c, visited
 }
 
@@ -103,7 +96,7 @@ func main() {
 		}
 	}
 
-	part1, visited := eval(grid, sy, sx, did)
+	part1, visited := eval(grid, sy, sx, did, -1, -1)
 	fmt.Println("part1 :", part1)
 
 	w := len(grid[0])
@@ -114,16 +107,24 @@ func main() {
 	}
 
 	loops := 0
-	for k := range visited {
+
+	ch := make(chan int)
+	egr := func(k int) {
 		y, x := decode(k)
-		grid[y][x] = '#'
-		v, _ := eval(grid, sy, sx, did)
+		v, _ := eval(grid, sy, sx, did, y, x)
 		if v == -1 {
-			loops += 1
+			ch <- 1
+		} else {
+			ch <- 0
 		}
-		grid[y][x] = '.'
 	}
 
+	for k := range visited {
+		go egr(k)
+	}
+	for range visited {
+		x := <-ch
+		loops += x
+	}
 	fmt.Println("part2 :", loops)
-
 }
