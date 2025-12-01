@@ -1,73 +1,57 @@
 use std::env;
-use std::fs::File;
-use std::io::{self, BufRead};
+use std::fs::read_to_string;
+use std::io;
 
 #[derive(Debug)]
 enum Rotation {
-    Left(u16),
-    Right(u16),
+    Left(i16),
+    Right(i16),
 }
 
 impl Rotation {
-    fn rotate(&self, start: u16) -> (u16, u16) {
-        let s = start as i16;
-        let n = match self {
-            Self::Left(x) => s - *x as i16,
-            Self::Right(x) => s + *x as i16,
-        };
-        let nrots = match self {
+    fn rotate(&self, sv: i16) -> (i16, i16) {
+        let nv = match self {
+            Self::Left(x) => sv - *x,
+            Self::Right(x) => sv + *x,
+        }
+        .rem_euclid(100);
+
+        let full_rotations = match self {
             Self::Left(x) => x / 100,
             Self::Right(x) => x / 100,
         };
-
-        let nv = n.rem_euclid(100);
-        let cr = nrots
-            + if let Self::Left(x) = self
-                && s != 0
-                && (x % 100) > start
-            {
-                1
-            } else if let Self::Right(x) = self
-                && (start + x % 100) > 100
-            {
-                1
-            } else if s == 0 {
-                1
-            } else {
-                0
-            };
-
-        (cr as u16, nv as u16)
+        let signdelta = match self {
+            Self::Left(_) if nv > sv && sv != 0 => 1,
+            Self::Right(_) if nv < sv => 1,
+            _ if sv != 0 && nv == 0 => 1,
+            _ => 0,
+        };
+        let zc = full_rotations + signdelta;
+        (nv, zc)
+    }
+    fn from_str(s: &str) -> Rotation {
+        let v: i16 = s[1..].parse().unwrap();
+        if s[0..1] == *"L" {
+            Rotation::Left(v)
+        } else {
+            Rotation::Right(v)
+        }
     }
     fn parse(file: &str) -> io::Result<Vec<Self>> {
-        println!("file: {file}");
-        let mut res: Vec<Self> = vec![];
-        for line in io::BufReader::new(File::open(file)?).lines() {
-            let l = line.unwrap();
-            let v: u16 = l[1..].parse().unwrap();
-            res.push(if l[0..1] == *"L" {
-                Rotation::Left(v)
-            } else {
-                Rotation::Right(v)
-            });
-        }
-        Ok(res)
+        Ok(read_to_string(file)?.lines().map(Self::from_str).collect())
     }
 }
 
-fn solve(file: &str) -> (u16, u16) {
-    let rs = Rotation::parse(file).unwrap();
-    let mut st = 50;
-    let mut part1 = 0;
-    let mut part2 = 0;
-    for r in rs.iter() {
-        let (cross, nst) = r.rotate(st);
-        st = nst;
-        part2 += cross;
-        if st == 0 {
-            part1 += 1;
-        }
-    }
+fn solve(file: &str) -> (i16, i16) {
+    let (_, part1, part2) =
+        Rotation::parse(file)
+            .unwrap()
+            .iter()
+            .fold((50, 0, 0), |(st, nz, zc), r| {
+                let (nst, cross) = r.rotate(st);
+                let nnz = if nst == 0 { nz + 1 } else { nz };
+                (nst, nnz, cross + zc)
+            });
     (part1, part2)
 }
 
@@ -99,8 +83,8 @@ mod test {
     #[test]
     fn rlarge() {
         let x = Rotation::Right(1000);
-        let (cr, nv) = x.rotate(50);
-        assert_eq!(cr, 10);
+        let (nv, cr) = x.rotate(50);
         assert_eq!(nv, 50);
+        assert_eq!(cr, 10);
     }
 }
