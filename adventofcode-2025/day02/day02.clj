@@ -16,40 +16,37 @@
 (def input (parse "./input.txt"))
 
 (defn power [b p]
-  (cond (= p 0)
-        1
+  (cond (= p 0) 1
+        (= p 1) b
+        (even? p) (recur (* b b) (quot p 2))
+        :else (* b (power b (dec p)))))
 
-        (= p 1)
-        b
-
-        (even? p)
-        (recur (* b b) (quot p 2))
-
-        :else
-        (* b (power b (dec p)))))
+(defn ndigits [x]
+  (+ 1 (int (clojure.math/log10 x))))
 
 (defn palindrome-of [n]
-  (let [d (count (str n))
+  (let [d (ndigits n)
         m (power 10 d)]
     (+ n (* m n))))
 
-(defn minmaxp [x]
-  (let [s (str x)
-        sl (count s)
+(defn nines [n]
+  (reduce #(+ %2 (* 10 %1)) 0 (repeat n 9)))
+
+(defn minmax-palindrome [x]
+  (let [sl (ndigits x)
         hl (quot sl 2)
-        [top bottom] (split-at hl s)
-        tn (if (= 0 hl) 0 (Long/parseLong (apply str top)))
-        bn (Long/parseLong (apply str bottom))]
+        dm (power 10 hl)
+        tn (quot x dm)
+        bn (mod x dm)]
     (cond
-      (= 1 (mod sl 2)) [(power 10 hl)
-                        (Long/parseLong (apply str \0 (repeat hl 9)))]
+      (odd? sl) [dm (nines hl)]
       (< tn bn) [(+ 1 tn) tn]
       (= tn bn) [tn tn]
       (> tn bn) [tn (- tn 1)])))
 
 (defn get-pals [[a b]]
-  (let [[smol _] (minmaxp a)
-        [_ large] (minmaxp b)]
+  (let [[smol _] (minmax-palindrome a)
+        [_ large] (minmax-palindrome b)]
     (map palindrome-of (range smol (+ 1 large)))))
 
 (defn solve1 [prob]
@@ -60,18 +57,23 @@
 (solve1 sample) ; 1227775554
 (solve1 input) ; 43952536386
 
-(defn pals [digit]
-  (let [fac (power 10 (+ 1 (int (clojure.math/log10 digit))))]
-    (drop 1 (reductions (fn [n d] (+ d (* n fac))) (repeat digit)))))
+(defn pals [x]
+  (let [fac (power 10 (ndigits x))]
+    (->> x
+         repeat
+         (reductions (fn [n d] (+ d (* n fac))))
+         (drop 1))))
 
 (defn palindromes-range [[minv maxv]]
-  (let [[_ maxnum] (minmaxp maxv)]
-    (set (mapcat (fn [x]
-                   (->> x
-                        pals
-                        (drop-while #(< % minv))
-                        (take-while #(<= % maxv))))
-                 (range 1 (+ 1 maxnum))))))
+  (let [[_ maxnum] (minmax-palindrome maxv)]
+    (->> (range 1 (+ 1 maxnum))
+         (mapcat
+          (fn [x]
+            (->> x
+                 pals
+                 (drop-while #(< % minv))
+                 (take-while #(<= % maxv)))))
+         set)))
 
 (defn solve2 [prob]
   (->> prob
