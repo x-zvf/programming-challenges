@@ -1,6 +1,5 @@
 (ns day06
-  (:require [clojure.string :as string]
-            [clojure.edn :as edn]))
+  (:require [clojure.string :as string]))
 
 (defn transpose [m]
   (apply mapv vector m))
@@ -12,10 +11,11 @@
 
         [split-idxs ops]
         (->> ops-line
-             (keep-indexed #(if (not= \space %2) [%1 %2] nil))
+             (keep-indexed #(when (not= \space %2) [%1 %2]))
              transpose)
-        split-idxs (conj split-idxs (count (first number-lines)))
-        ops (map #(edn/read-string (str %)) ops)
+        line-length (count (first number-lines))
+        split-idxs (conj split-idxs line-length)
+        ops (map {\+ + \* *} ops)
 
         blocks (mapv (fn [line]
                        (mapv (fn [[f t]] (subvec line f t))
@@ -27,8 +27,9 @@
             (->> blocks
                  (mapv #(nth % i))
                  ((if part2 transpose identity))
-                 (map #(edn/read-string (apply str %)))
-                 (filter #(not (nil? %)))
+                 (map #(string/trim (apply str %)))
+                 (filter #(not (empty? %)))
+                 (map Integer/parseInt)
                  (cons op)
                  eval)))
          (apply +))))
