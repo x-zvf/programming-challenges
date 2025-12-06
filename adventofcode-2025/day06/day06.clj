@@ -4,7 +4,7 @@
 (defn transpose [m]
   (apply mapv vector m))
 
-(defn solve [file part2]
+(defn solve [file part2?]
   (let [lines (->> file string/split-lines (mapv vec))
         number-lines (drop-last lines)
         ops-line (last lines)
@@ -26,7 +26,7 @@
           (fn [i op]
             (->> blocks
                  (mapv #(nth % i))
-                 ((if part2 transpose identity))
+                 ((if part2? transpose identity))
                  (map #(string/trim (apply str %)))
                  (filter #(not (empty? %)))
                  (map Integer/parseInt)
