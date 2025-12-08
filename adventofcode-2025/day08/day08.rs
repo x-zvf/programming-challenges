@@ -1,10 +1,6 @@
 #![feature(exact_length_collection)]
-use petgraph::algo;
-use petgraph::data::FromElements;
-use petgraph::dot::Config;
 use petgraph::graph::UnGraph;
 use std::collections::BTreeMap;
-use std::env;
 use std::fs;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
@@ -63,19 +59,24 @@ fn part1(edges: BTreeMap<isize, (u32, u32)>, take_edges: usize, take_sccs: usize
     sccs.iter().rev().take(take_sccs).product()
 }
 fn part2(nodes: Vec<Point>, mut edges: BTreeMap<isize, (u32, u32)>) -> usize {
-    let mut graph = UnGraph::<u32, ()>::new_undirected();
-    for i in 0..nodes.len() {
-        graph.add_node(i as u32);
-    }
-
+    let mut uf = petgraph::unionfind::UnionFind::<u32>::new(nodes.len());
     loop {
         let e = edges.pop_first().unwrap().1;
-        graph.add_edge(e.0.into(), e.1.into(), ());
-        if algo::connected_components(&graph) == 1 {
-            let a = nodes[e.0 as usize].x;
-            let b = nodes[e.1 as usize].x;
-            return (b * a) as usize;
+        uf.union(e.0, e.1);
+        let pr = uf.find_mut(0);
+        let mut diff = false;
+        for i in 1..nodes.len() {
+            if uf.find_mut(i as u32) != pr {
+                diff = true;
+                break;
+            }
         }
+        if diff {
+            continue;
+        }
+        let a = nodes[e.0 as usize].x;
+        let b = nodes[e.1 as usize].x;
+        return (b * a) as usize;
     }
 }
 
@@ -88,5 +89,5 @@ fn main() {
 
     let sample_p2 = part2(s_n, s_e);
     let input_p2 = part2(i_n, i_e);
-    println!("part1: {sample_p2} {input_p2}");
+    println!("part2: {sample_p2} {input_p2}");
 }
