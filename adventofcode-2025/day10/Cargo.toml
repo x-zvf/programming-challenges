@@ -1,0 +1,12 @@
+[package]
+name = "day10"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+itertools = "0.14"
+good_lp = "1.14"
+
+[[bin]]
+name = "day10"
+path = "day10.rs"
